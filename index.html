@@ -1,0 +1,953 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MEK CV Builder</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel: rgba(255,255,255,.06);
+      --border: rgba(255,255,255,.14);
+      --txt:#eaf0ff;
+      --muted:#a9b7da;
+      --accent:#7aa2ff;
+      --paper:#ffffff;
+      --ink:#0f172a;
+      --ink2:#334155;
+      --line:#e5e7eb;
+      --shadow: 0 18px 45px rgba(0,0,0,.25);
+      --radius:16px;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: var(--sans);
+      background: radial-gradient(1200px 900px at 15% 10%, rgba(122,162,255,.18), transparent 55%),
+                  radial-gradient(900px 700px at 80% 30%, rgba(146,254,188,.12), transparent 60%),
+                  var(--bg);
+      color:var(--txt);
+      overflow-x:hidden;
+    }
+
+    .wrap{
+      max-width: 1240px;
+      margin: 16px auto;
+      padding: 0 14px 24px;
+      display:grid;
+      grid-template-columns: 390px 1fr;
+      gap: 14px;
+      align-items:start;
+    }
+    @media (max-width: 980px){ .wrap{grid-template-columns: 1fr;} }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding: 14px 14px 12px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
+    }
+    .title{ font-weight: 950; letter-spacing: .2px; line-height:1.1; font-size: 16px; }
+    .sub{ margin-top:6px; font-size:12px; color: var(--muted); line-height:1.35; }
+    .actions{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    .btn{
+      appearance:none;
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+      color: var(--txt);
+      font-weight: 900;
+      padding: 8px 10px;
+      border-radius: 12px;
+      cursor:pointer;
+      transition: transform .06s ease, filter .15s ease;
+      white-space:nowrap;
+      font-size: 12px;
+    }
+    .btn:hover{ filter: brightness(1.08); }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+    .btn.accent{ border-color: rgba(122,162,255,.35); }
+
+    .content{ padding: 12px 14px 14px; }
+
+    /* Form */
+    .grid{ display:grid; gap:10px; }
+    .row2{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    @media (max-width: 980px){ .row2{ grid-template-columns: 1fr; } }
+
+    label{ font-size:12px; font-weight:900; color: var(--txt); display:block; margin-bottom:6px; }
+    input, textarea, select{
+      width:100%;
+      padding: 9px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.22);
+      color: var(--txt);
+      outline:none;
+      font-weight: 800;
+      font-size: 13px;
+    }
+    textarea{ min-height: 86px; resize: vertical; font-weight: 750; }
+    .hint{ font-size: 11px; color: var(--muted); margin-top:6px; line-height:1.35; }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .secTitle{
+      margin: 10px 0 8px;
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: .35px;
+      color: var(--txt);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .miniBtn{
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.18);
+      color: var(--txt);
+      border-radius: 12px;
+      padding: 6px 8px;
+      font-weight: 900;
+      cursor:pointer;
+      font-size: 12px;
+      white-space:nowrap;
+    }
+    .fileRow{
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      border:1px dashed rgba(255,255,255,.16);
+      border-radius:14px;
+      padding:10px;
+    }
+    .fileRow .left{ display:flex; flex-direction:column; gap:3px; }
+    .fileRow .left b{ font-size:12px; }
+    .fileRow .left span{ font-size:11px; color:var(--muted); font-weight:800; }
+
+    /* Preview paper */
+    .paperWrap{ padding: 14px; }
+    .paper{
+      width: 100%;
+      max-width: 880px;
+      margin: 0 auto;
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 18px;
+      box-shadow: 0 22px 55px rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.22);
+      overflow:hidden;
+    }
+
+    /* Templates */
+    .paperInner{ padding: 28px 30px 26px; }
+    .tpl-modern .paperInner{ padding: 0; }
+    .tpl-modern .hero{
+      padding: 24px 30px 18px;
+      background: linear-gradient(135deg, rgba(122,162,255,.18), rgba(146,254,188,.14));
+      border-bottom: 1px solid rgba(0,0,0,.06);
+    }
+    .tpl-modern .paperBody{ padding: 18px 30px 26px; }
+
+    /* ATS template: very plain */
+    .tpl-ats{
+      box-shadow:none;
+    }
+    .tpl-ats .paperInner{ padding: 22px 22px; }
+    .tpl-ats .name{ font-size: 26px; }
+    .tpl-ats .tags .tag{ background:#fff; border:1px solid #d1d5db; }
+    .tpl-ats .hero{ background:#fff; border-bottom:1px solid var(--line); padding: 18px 22px 12px; }
+
+    /* CV blocks */
+    .cvTop{
+      display:flex; gap:18px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+    }
+    .name{ font-weight: 950; font-size: 28px; letter-spacing: .2px; line-height:1.15; }
+    .role{ font-weight: 850; color: var(--ink2); margin-top: 4px; font-size: 14px; }
+
+    .meta{
+      min-width: 250px;
+      display:grid;
+      gap:6px;
+      justify-items:end;
+      text-align:right;
+      font-size: 12px;
+      color: var(--ink2);
+      font-weight: 750;
+    }
+    .meta a{ color: inherit; text-decoration:none; border-bottom:1px dotted rgba(0,0,0,.25); }
+    .meta a:hover{ border-bottom-style: solid; }
+
+    .topLeft{
+      display:flex; gap:14px; align-items:flex-start;
+    }
+    .avatar{
+      width: 68px; height: 68px; border-radius: 16px;
+      border: 1px solid rgba(0,0,0,.10);
+      background: #f1f5f9;
+      overflow:hidden;
+      flex: 0 0 auto;
+      position: relative;
+    }
+    .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .avatar .ph{
+      width:100%; height:100%;
+      display:flex; align-items:center; justify-content:center;
+      font-weight: 950; color:#64748b; font-size: 12px;
+    }
+
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 980px){ .twoCol{ grid-template-columns: 1fr; } }
+
+    .block{ margin-bottom: 12px; }
+    .h{
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: .35px;
+      color: var(--ink);
+      margin: 14px 0 8px;
+      text-transform: uppercase;
+    }
+    .p{ color: var(--ink2); font-size: 12.5px; line-height: 1.55; font-weight: 650; }
+    .list{ margin:0; padding-left: 18px; color: var(--ink2); font-size:12.5px; line-height:1.55; font-weight: 650; }
+    .item{
+      padding: 10px 0;
+      border-top:1px solid var(--line);
+    }
+    .item:first-child{ border-top: 0; padding-top:0; }
+    .itemTitle{ font-weight: 950; color: var(--ink); font-size: 13px; }
+    .itemSub{ color: var(--ink2); font-size: 12px; font-weight: 700; margin-top:2px; }
+    .itemBul{ margin-top:6px; }
+
+    .tags{ display:flex; flex-wrap:wrap; gap:6px; }
+    .tag{
+      font-size: 11.5px;
+      font-weight: 850;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border:1px solid var(--line);
+      background: #f8fafc;
+      color: var(--ink2);
+    }
+
+    /* Toast */
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.55);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.16);
+      box-shadow: var(--shadow);
+      font-weight: 900;
+      font-size: 13px;
+      opacity: 0;
+      pointer-events:none;
+      transition: opacity .18s ease, transform .18s ease;
+      z-index: 99;
+    }
+    .toast.show{ opacity: 1; transform: translateX(-50%) translateY(-2px); }
+
+    /* PRINT (PDF) */
+    @media print{
+      body{ background:#fff !important; }
+      .wrap{ display:block; padding:0; margin:0; }
+      .card.formCard, .toast { display:none !important; }
+      .paperWrap{ padding:0 !important; }
+      .paper{
+        box-shadow:none !important;
+        border:0 !important;
+        border-radius:0 !important;
+        max-width: 100% !important;
+      }
+      .paperInner, .tpl-modern .paperBody, .tpl-modern .hero, .tpl-ats .hero{
+        padding: 16mm 14mm !important;
+      }
+      .item, .block, ul, li { break-inside: avoid; page-break-inside: avoid; }
+      a{ text-decoration:none !important; }
+      @page{ margin: 10mm; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+    <!-- FORM -->
+    <div class="card formCard">
+      <div class="hd">
+        <div>
+          <div class="title">🧾 MEK CV Builder (Pro)</div>
+          <div class="sub">
+            Sol tarafta doldur, sağda canlı CV oluşsun. PDF için <b>PDF İndir</b>.
+            <div class="hint">Share Link: CV verisini URL’ye gömer (fotoğraf linke dahil edilmez).</div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn" id="langBtn" title="TR/EN">TR</button>
+          <button class="btn" id="tplBtn" title="Template">Minimal</button>
+          <button class="btn" id="shareBtn" title="Link üret & kopyala">Share Link</button>
+          <button class="btn" id="saveBtn">Kaydet</button>
+          <button class="btn" id="loadBtn">Yükle</button>
+          <button class="btn" id="resetBtn">Sıfırla</button>
+          <button class="btn accent" id="printBtn">PDF İndir</button>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- Avatar -->
+        <div class="fileRow">
+          <div class="left">
+            <b id="secPhoto">🖼️ Fotoğraf (opsiyonel)</b>
+            <span id="hintPhoto">Yüklediğin fotoğraf tarayıcıda saklanır (local). PDF’de görünür.</span>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input id="photo" type="file" accept="image/*" style="max-width:220px"/>
+            <button class="miniBtn" id="removePhotoBtn">Kaldır</button>
+          </div>
+        </div>
+
+        <div class="grid" style="margin-top:10px;">
+          <div class="row2">
+            <div>
+              <label id="lblName">Ad Soyad</label>
+              <input id="name" placeholder="Mahmut Emre Kaya"/>
+            </div>
+            <div>
+              <label id="lblRole">Unvan</label>
+              <input id="role" placeholder="Software Engineer / Student"/>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div>
+              <label id="lblMail">E-posta</label>
+              <input id="email" placeholder="mek@example.com"/>
+            </div>
+            <div>
+              <label id="lblPhone">Telefon</label>
+              <input id="phone" placeholder="+90 5xx xxx xx xx"/>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div>
+              <label id="lblLoc">Konum</label>
+              <input id="location" placeholder="İstanbul, TR"/>
+            </div>
+            <div>
+              <label id="lblSite">Website</label>
+              <input id="website" placeholder="https://..."/>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div>
+              <label id="lblLinkedin">LinkedIn</label>
+              <input id="linkedin" placeholder="https://linkedin.com/in/..."/>
+            </div>
+            <div>
+              <label id="lblGithub">GitHub</label>
+              <input id="github" placeholder="https://github.com/..."/>
+            </div>
+          </div>
+
+          <div>
+            <label id="lblSummary">Özet</label>
+            <textarea id="summary" placeholder="Kısa profesyonel özet (2-4 cümle)."></textarea>
+            <div class="hint" id="hintSummary">İpucu: Ne yapıyorsun + hangi alanlar + 1–2 güçlü yön.</div>
+          </div>
+
+          <div class="secTitle">
+            <span id="secEdu">🎓 Eğitim (satır satır)</span>
+            <span class="pill" title="Biçim: Okul | Bölüm | Tarih">Okul | Bölüm | Tarih</span>
+          </div>
+          <textarea id="education" placeholder="Üniversite | Bölüm | 2023-2027"></textarea>
+
+          <div class="secTitle">
+            <span id="secExp">💼 Deneyim / Staj (satır satır)</span>
+            <span class="pill" title="Biçim: Firma | Rol | Tarih">Firma | Rol | Tarih</span>
+          </div>
+          <textarea id="experience" placeholder="Firma | Stajyer | 2025 Yaz&#10;- Madde 1&#10;- Madde 2&#10;&#10;Başka Firma | ..."></textarea>
+          <div class="hint" id="hintExp">Her deneyim bloğunu boş satırla ayır. Maddeleri <b>-</b> ile yaz.</div>
+
+          <div class="secTitle">
+            <span id="secProj">🧩 Projeler (satır satır)</span>
+            <span class="pill" title="Biçim: Proje Adı | Link | Açıklama">Ad | Link | Açıklama</span>
+          </div>
+          <textarea id="projects" placeholder="MEK Space | https://... | Seed-based generative wallpaper"></textarea>
+
+          <div class="row2">
+            <div>
+              <div class="secTitle">
+                <span id="secSkills">🛠️ Yetenekler</span>
+                <span class="pill" title="Virgülle ayır">tag, tag, tag</span>
+              </div>
+              <input id="skills" placeholder="JavaScript, HTML, CSS, Canvas, Git"/>
+            </div>
+            <div>
+              <div class="secTitle">
+                <span id="secLang">🌍 Diller</span>
+                <span class="pill" title="Virgülle ayır">TR, EN...</span>
+              </div>
+              <input id="languages" placeholder="Türkçe (Ana), İngilizce (B2)"/>
+            </div>
+          </div>
+
+          <div>
+            <div class="secTitle">
+              <span id="secCert">🏅 Sertifikalar / Ödüller</span>
+              <button class="miniBtn" id="fillBtn" title="Örnek doldur">Örnek</button>
+            </div>
+            <textarea id="certs" placeholder="Sertifika Adı | Kurum | 2025"></textarea>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="paperWrap">
+      <div class="paper" id="paper">
+        <div id="paperInner" class="paperInner"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Kaydedildi ✅</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  const fields = [
+    "name","role","email","phone","location","website","linkedin","github",
+    "summary","education","experience","projects","skills","languages","certs"
+  ];
+
+  const toastEl = $("toast");
+  let toastTimer = null;
+  const toast = (msg) => {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>toastEl.classList.remove("show"), 1400);
+  };
+
+  // state
+  let lang = "tr";          // tr | en
+  let template = "min";     // min | modern | ats
+  let photoDataUrl = "";    // stored locally
+
+  const KEY = "mek_cv_builder_pro_v1";
+
+  // ---------- helpers ----------
+  const esc = (s) => (s ?? "").toString()
+    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+
+  const setText = (id, tr, en) => $(id).textContent = (lang === "tr" ? tr : en);
+
+  function parsePipes(text){
+    const lines = (text||"").split("\n").map(l=>l.trim()).filter(Boolean);
+    return lines.map(l => l.split("|").map(x=>x.trim()));
+  }
+
+  function parseBlocks(text){
+    const blocks = (text||"").split(/\n\s*\n/g).map(b=>b.trim()).filter(Boolean);
+    return blocks.map(b=>{
+      const lines = b.split("\n").map(x=>x.trim()).filter(Boolean);
+      const head = lines[0] || "";
+      const bullets = lines.slice(1)
+        .filter(x=>x.startsWith("-"))
+        .map(x=>x.replace(/^-+\s*/,"").trim())
+        .filter(Boolean);
+      return { head, bullets };
+    });
+  }
+
+  function linkify(url){
+    const u = (url||"").trim();
+    if(!u) return "";
+    const safe = esc(u);
+    const href = u.startsWith("http") || u.startsWith("mailto:") ? u : "https://" + u;
+    const label = safe.replace(/^https?:\/\//,"").replace(/^mailto:/,"");
+    return `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+  }
+
+  function tagsFromCsv(text){
+    return (text||"").split(",").map(x=>x.trim()).filter(Boolean).slice(0, 28);
+  }
+
+  function getData(){
+    const d = {};
+    for(const k of fields) d[k] = $(k).value || "";
+    return d;
+  }
+
+  function setData(d){
+    for(const k of fields){
+      if($(k)) $(k).value = (d && d[k]) ? d[k] : "";
+    }
+  }
+
+  // ---------- URL Share ----------
+  // We store JSON -> UTF8 -> base64url
+  function toBase64Url(str){
+    const bytes = new TextEncoder().encode(str);
+    let bin = "";
+    for (let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+    const b64 = btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+    return b64;
+  }
+  function fromBase64Url(b64url){
+    const b64 = b64url.replace(/-/g,"+").replace(/_/g,"/");
+    const pad = b64.length % 4 ? "=".repeat(4 - (b64.length % 4)) : "";
+    const bin = atob(b64 + pad);
+    const bytes = new Uint8Array(bin.length);
+    for (let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  async function copyText(text){
+    try{
+      await navigator.clipboard.writeText(text);
+      toast(lang==="tr" ? "Link kopyalandı ✅" : "Link copied ✅");
+    }catch{
+      // fallback
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+      toast(lang==="tr" ? "Link kopyalandı ✅" : "Link copied ✅");
+    }
+  }
+
+  function makeShareLink(){
+    const payload = { v:1, lang, template, data: getData() };
+    // IMPORTANT: photo is NOT included (URLs would explode)
+    const encoded = toBase64Url(JSON.stringify(payload));
+    const u = new URL(location.href);
+    u.searchParams.set("cv", encoded);
+    return u.toString();
+  }
+
+  function tryLoadFromUrl(){
+    const u = new URL(location.href);
+    const cv = u.searchParams.get("cv");
+    if(!cv) return false;
+    try{
+      const json = fromBase64Url(cv);
+      const payload = JSON.parse(json);
+      if(payload.lang) lang = payload.lang;
+      if(payload.template) template = payload.template;
+      if(payload.data) setData(payload.data);
+      i18n();
+      render();
+      toast(lang==="tr" ? "Linkten yüklendi ✅" : "Loaded from link ✅");
+      return true;
+    }catch{
+      toast(lang==="tr" ? "Link verisi okunamadı" : "Invalid link data");
+      return false;
+    }
+  }
+
+  // ---------- i18n ----------
+  function i18n(){
+    $("langBtn").textContent = (lang === "tr" ? "TR" : "EN");
+
+    const tplLabel =
+      template === "min" ? "Minimal" :
+      template === "modern" ? "Modern" : (lang==="tr" ? "ATS" : "ATS");
+    $("tplBtn").textContent = tplLabel;
+
+    setText("secPhoto","🖼️ Fotoğraf (opsiyonel)","🖼️ Photo (optional)");
+    setText("hintPhoto","Yüklediğin fotoğraf tarayıcıda saklanır (local). PDF’de görünür.","Photo is stored locally in your browser. It appears in PDF.");
+    setText("lblName","Ad Soyad","Full Name");
+    setText("lblRole","Unvan","Title");
+    setText("lblMail","E-posta","Email");
+    setText("lblPhone","Telefon","Phone");
+    setText("lblLoc","Konum","Location");
+    setText("lblSite","Website","Website");
+    setText("lblLinkedin","LinkedIn","LinkedIn");
+    setText("lblGithub","GitHub","GitHub");
+    setText("lblSummary","Özet","Summary");
+    setText("hintSummary","İpucu: Ne yapıyorsun + hangi alanlar + 1–2 güçlü yön.","Tip: What you do + focus area + 1–2 strengths.");
+    setText("secEdu","🎓 Eğitim (satır satır)","🎓 Education (line by line)");
+    setText("secExp","💼 Deneyim / Staj (satır satır)","💼 Experience / Internship (line by line)");
+    setText("hintExp","Her deneyim bloğunu boş satırla ayır. Maddeleri - ile yaz.","Separate blocks with a blank line. Use '-' for bullet lines.");
+    setText("secProj","🧩 Projeler (satır satır)","🧩 Projects (line by line)");
+    setText("secSkills","🛠️ Yetenekler","🛠️ Skills");
+    setText("secLang","🌍 Diller","🌍 Languages");
+    setText("secCert","🏅 Sertifikalar / Ödüller","🏅 Certificates / Awards");
+
+    $("shareBtn").textContent = (lang==="tr" ? "Share Link" : "Share Link");
+    $("saveBtn").textContent  = (lang==="tr" ? "Kaydet" : "Save");
+    $("loadBtn").textContent  = (lang==="tr" ? "Yükle" : "Load");
+    $("resetBtn").textContent = (lang==="tr" ? "Sıfırla" : "Reset");
+    $("printBtn").textContent = (lang==="tr" ? "PDF İndir" : "Download PDF");
+    $("removePhotoBtn").textContent = (lang==="tr" ? "Kaldır" : "Remove");
+    $("fillBtn").textContent = (lang==="tr" ? "Örnek" : "Sample");
+  }
+
+  // ---------- render ----------
+  function render(){
+    const d = getData();
+    const fullName = d.name.trim() || (lang==="tr" ? "Ad Soyad" : "Full Name");
+    const role = d.role.trim() || (lang==="tr" ? "Unvan" : "Title");
+
+    const metaParts = [];
+    if(d.location.trim()) metaParts.push(esc(d.location.trim()));
+    if(d.email.trim()) metaParts.push(linkify("mailto:"+d.email.trim()));
+    if(d.phone.trim()) metaParts.push(esc(d.phone.trim()));
+    if(d.website.trim()) metaParts.push(linkify(d.website.trim()));
+    if(d.linkedin.trim()) metaParts.push(linkify(d.linkedin.trim()));
+    if(d.github.trim()) metaParts.push(linkify(d.github.trim()));
+    const metaHTML = metaParts.map(x=>`<div>${x}</div>`).join("");
+
+    const summary = d.summary.trim();
+    const edu = parsePipes(d.education);
+    const proj = parsePipes(d.projects);
+    const cert = parsePipes(d.certs);
+    const exp = parseBlocks(d.experience);
+    const skills = tagsFromCsv(d.skills);
+    const langs  = tagsFromCsv(d.languages);
+
+    const H_SUM = (lang==="tr" ? "Özet" : "Summary");
+    const H_EDU = (lang==="tr" ? "Eğitim" : "Education");
+    const H_EXP = (lang==="tr" ? "Deneyim" : "Experience");
+    const H_PROJ= (lang==="tr" ? "Projeler" : "Projects");
+    const H_SKL = (lang==="tr" ? "Yetenekler" : "Skills");
+    const H_LNG = (lang==="tr" ? "Diller" : "Languages");
+    const H_CRT = (lang==="tr" ? "Sertifikalar / Ödüller" : "Certificates / Awards");
+
+    const summaryHTML = summary
+      ? `<div class="block">
+          <div class="h">${H_SUM}</div>
+          <div class="p">${esc(summary)}</div>
+        </div>` : "";
+
+    const eduHTML = edu.length
+      ? `<div class="block">
+           <div class="h">${H_EDU}</div>
+           ${edu.map(parts=>{
+              const a = esc(parts[0]||"");
+              const b = esc(parts[1]||"");
+              const c = esc(parts[2]||"");
+              const line2 = [b,c].filter(Boolean).join(" · ");
+              return `<div class="item">
+                        <div class="itemTitle">${a}</div>
+                        ${line2 ? `<div class="itemSub">${line2}</div>` : ``}
+                      </div>`;
+           }).join("")}
+         </div>` : "";
+
+    const expHTML = exp.length
+      ? `<div class="block">
+           <div class="h">${H_EXP}</div>
+           ${exp.map(b=>{
+              const head = b.head.split("|").map(x=>x.trim());
+              const a = esc(head[0]||"");
+              const b1 = esc(head[1]||"");
+              const c = esc(head[2]||"");
+              const line2 = [b1,c].filter(Boolean).join(" · ");
+              const bul = b.bullets.length ? `<ul class="list itemBul">${b.bullets.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>` : "";
+              return `<div class="item">
+                        <div class="itemTitle">${a}</div>
+                        ${line2 ? `<div class="itemSub">${line2}</div>` : ``}
+                        ${bul}
+                      </div>`;
+           }).join("")}
+         </div>` : "";
+
+    const projHTML = proj.length
+      ? `<div class="block">
+           <div class="h">${H_PROJ}</div>
+           ${proj.map(parts=>{
+              const a = esc(parts[0]||"");
+              const link = (parts[1]||"").trim();
+              const desc = esc(parts.slice(2).join(" | ").trim());
+              const linkHtml = link ? linkify(link) : "";
+              return `<div class="item">
+                        <div class="itemTitle">${a}</div>
+                        <div class="itemSub">${[linkHtml, desc].filter(Boolean).join(" · ")}</div>
+                      </div>`;
+           }).join("")}
+         </div>` : "";
+
+    const skillsHTML = skills.length
+      ? `<div class="block">
+           <div class="h">${H_SKL}</div>
+           <div class="tags">${skills.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>
+         </div>` : "";
+
+    const langsHTML = langs.length
+      ? `<div class="block">
+           <div class="h">${H_LNG}</div>
+           <div class="p">${esc(langs.join(", "))}</div>
+         </div>` : "";
+
+    const certHTML = cert.length
+      ? `<div class="block">
+           <div class="h">${H_CRT}</div>
+           ${cert.map(parts=>{
+              const a = esc(parts[0]||"");
+              const b = esc(parts[1]||"");
+              const c = esc(parts[2]||"");
+              const line2 = [b,c].filter(Boolean).join(" · ");
+              return `<div class="item">
+                        <div class="itemTitle">${a}</div>
+                        ${line2 ? `<div class="itemSub">${line2}</div>` : ``}
+                      </div>`;
+           }).join("")}
+         </div>` : "";
+
+    const avatarHTML = photoDataUrl
+      ? `<div class="avatar"><img alt="photo" src="${photoDataUrl}"></div>`
+      : `<div class="avatar"><div class="ph">${lang==="tr" ? "FOTO" : "PHOTO"}</div></div>`;
+
+    const topHTML = `
+      <div class="cvTop">
+        <div class="topLeft">
+          ${avatarHTML}
+          <div>
+            <div class="name">${esc(fullName)}</div>
+            <div class="role">${esc(role)}</div>
+          </div>
+        </div>
+        <div class="meta">${metaHTML}</div>
+      </div>
+    `;
+
+    const leftCol = `${summaryHTML}${expHTML}${projHTML}`;
+    const rightCol = `${skillsHTML}${langsHTML}${eduHTML}${certHTML}`;
+
+    const bodyTwoCol = `
+      <div class="twoCol">
+        <div>${leftCol}</div>
+        <div>${rightCol}</div>
+      </div>
+    `;
+
+    // ATS: single column (more ATS friendly)
+    const bodySingleCol = `
+      <div>
+        ${summaryHTML}
+        ${skillsHTML}
+        ${langsHTML}
+        ${expHTML}
+        ${projHTML}
+        ${eduHTML}
+        ${certHTML}
+      </div>
+    `;
+
+    const paperInner = $("paperInner");
+    const paper = $("paper");
+
+    paper.classList.toggle("tpl-modern", template === "modern");
+    paper.classList.toggle("tpl-ats", template === "ats");
+
+    if(template === "modern"){
+      paperInner.innerHTML = `
+        <div class="hero">${topHTML}</div>
+        <div class="paperBody">${bodyTwoCol}</div>
+      `;
+    } else if (template === "ats") {
+      paperInner.innerHTML = `
+        <div class="hero">${topHTML}</div>
+        <div class="paperInner">${bodySingleCol}</div>
+      `;
+    } else {
+      // minimal
+      paperInner.innerHTML = `${topHTML}${bodyTwoCol}`;
+    }
+  }
+
+  // ---------- persistence ----------
+  function save(){
+    const payload = { lang, template, photoDataUrl, data: getData() };
+    localStorage.setItem(KEY, JSON.stringify(payload));
+    toast(lang==="tr" ? "Kaydedildi ✅" : "Saved ✅");
+  }
+
+  function load(){
+    const raw = localStorage.getItem(KEY);
+    if(!raw){ toast(lang==="tr" ? "Kayıt bulunamadı" : "No saved data"); return; }
+    try{
+      const payload = JSON.parse(raw);
+      if(payload.lang) lang = payload.lang;
+      if(payload.template) template = payload.template;
+      if(payload.photoDataUrl) photoDataUrl = payload.photoDataUrl;
+      if(payload.data) setData(payload.data);
+      i18n();
+      render();
+      toast(lang==="tr" ? "Yüklendi ✅" : "Loaded ✅");
+    }catch{
+      toast(lang==="tr" ? "Yükleme hatası" : "Load error");
+    }
+  }
+
+  function reset(){
+    setData({});
+    photoDataUrl = "";
+    const u = new URL(location.href);
+    u.searchParams.delete("cv");
+    history.replaceState(null, "", u.toString());
+    render();
+    toast(lang==="tr" ? "Sıfırlandı" : "Reset");
+  }
+
+  // ---------- events ----------
+  for(const k of fields){
+    $(k).addEventListener("input", render);
+  }
+
+  $("langBtn").addEventListener("click", () => {
+    lang = (lang === "tr") ? "en" : "tr";
+    i18n();
+    render();
+    toast(lang==="tr" ? "Dil: TR" : "Language: EN");
+  });
+
+  $("tplBtn").addEventListener("click", () => {
+    // cycle: min -> modern -> ats -> min
+    template = (template === "min") ? "modern" : (template === "modern" ? "ats" : "min");
+    i18n();
+    render();
+    toast(lang==="tr"
+      ? `Şablon: ${template === "min" ? "Minimal" : (template==="modern" ? "Modern" : "ATS")}`
+      : `Template: ${template === "min" ? "Minimal" : (template==="modern" ? "Modern" : "ATS")}`
+    );
+  });
+
+  $("saveBtn").addEventListener("click", save);
+  $("loadBtn").addEventListener("click", load);
+  $("resetBtn").addEventListener("click", reset);
+
+  $("printBtn").addEventListener("click", () => {
+    render();
+    window.print(); // user selects "Save as PDF"
+  });
+
+  $("shareBtn").addEventListener("click", () => {
+    render();
+    const link = makeShareLink();
+    copyText(link);
+  });
+
+  $("fillBtn").addEventListener("click", () => {
+    const sample = {
+      name: "Mahmut Emre Kaya",
+      role: "Software Engineering Student",
+      summary: "Ürün odaklı web uygulamaları geliştiriyorum. JavaScript/Canvas ile hızlı prototipleme yapıyor, UI/UX ve performans detaylarına dikkat ediyorum.",
+      education: "İstanbul Sabahattin Zaim Üniversitesi | Yazılım Mühendisliği | 2023-2027",
+      experience: "Freelance | Web Developer | 2024-2026\n- Landing page ve web uygulamaları geliştirdim\n- UI/UX iyileştirmeleri ve optimizasyon yaptım",
+      projects: "MEK Space | https://github.com/kyemree | Seed tabanlı generative wallpaper\nCalculator Website | https://kyemree.github.io/ | Scientific calculator",
+      skills: "JavaScript, HTML, CSS, Canvas, Git, Python",
+      languages: "Türkçe (Ana), İngilizce (B2)",
+      certs: "Online Course | Platform | 2025\nHackathon Finalist | Event | 2024",
+      email: "mek@example.com",
+      phone: "+90 5xx xxx xx xx",
+      location: "İstanbul, TR",
+      website: "https://example.com",
+      linkedin: "https://linkedin.com/in/username",
+      github: "https://github.com/kyemree"
+    };
+    setData(sample);
+    render();
+    toast(lang==="tr" ? "Örnek dolduruldu" : "Sample filled");
+  });
+
+  // photo upload
+  $("photo").addEventListener("change", async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    // keep image small in storage
+    const imgUrl = await fileToDataUrl(file);
+    photoDataUrl = await downscaleToDataUrl(imgUrl, 260, 260, 0.88);
+    render();
+    toast(lang==="tr" ? "Fotoğraf eklendi" : "Photo added");
+  });
+
+  $("removePhotoBtn").addEventListener("click", () => {
+    photoDataUrl = "";
+    $("photo").value = "";
+    render();
+    toast(lang==="tr" ? "Fotoğraf kaldırıldı" : "Photo removed");
+  });
+
+  function fileToDataUrl(file){
+    return new Promise((resolve,reject)=>{
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  // downscale image to keep localStorage lighter
+  async function downscaleToDataUrl(dataUrl, maxW, maxH, quality=0.9){
+    const img = new Image();
+    img.src = dataUrl;
+    await img.decode();
+    const ratio = Math.min(1, maxW/img.width, maxH/img.height);
+    const w = Math.max(1, Math.round(img.width * ratio));
+    const h = Math.max(1, Math.round(img.height * ratio));
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    const cx = c.getContext("2d");
+    cx.drawImage(img, 0, 0, w, h);
+    // jpeg is smaller than png
+    return c.toDataURL("image/jpeg", quality);
+  }
+
+  // ---------- init ----------
+  i18n();
+
+  // 1) URL'den varsa yükle (share link)
+  const loadedFromUrl = tryLoadFromUrl();
+
+  // 2) URL yoksa local'den yükle (varsa)
+  if(!loadedFromUrl){
+    const raw = localStorage.getItem(KEY);
+    if(raw){
+      try{
+        const payload = JSON.parse(raw);
+        if(payload.lang) lang = payload.lang;
+        if(payload.template) template = payload.template;
+        if(payload.photoDataUrl) photoDataUrl = payload.photoDataUrl;
+        if(payload.data) setData(payload.data);
+        i18n();
+      }catch{}
+    }
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
